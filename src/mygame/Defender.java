@@ -23,12 +23,15 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import java.util.ArrayList;
+import java.util.Random;
 
-public class HelloPicking extends SimpleApplication {
+public class Defender extends SimpleApplication {
 
     public static void main(String[] args) {
-        HelloPicking app = new HelloPicking();
+        Defender app = new Defender();
+        //app.setShowSettings(false);
         app.start();
+
     }
     private Node shootables;
     private Node shootables2;
@@ -37,11 +40,13 @@ public class HelloPicking extends SimpleApplication {
     private Node shootables5;
     private Geometry mark;
     boolean dragon = true;
-    float z = -100f,x = -20f, y = 0f;
+    float z = -100f, x = -0.5f, y = -0.5f;
     Geometry cube;
-    private Node ninjas;
+    private Node naves;
     private boolean isRunning = true;
-    int cont = 1;
+    int cont = 1, vida = 100, pontos = 0, contNaves = 0, contN = 0, contMortes = 0, fase = 1, numNaves = 15, cont2 = 0, recorde = 0;
+    public String hit;
+    public Spatial nave;
 
     @Override
     public void simpleInitApp() {
@@ -63,61 +68,19 @@ public class HelloPicking extends SimpleApplication {
         shootables3 = new Node("Shootables3");
         shootables4 = new Node("Shootables4");
         shootables5 = new Node("Shootables4");
-        ninjas = new Node("Ninjas");
+        naves = new Node("Ninjas");
 
-        shootables.attachChild(makeCube("a Dragon", x, y, z));
-        rootNode.attachChild(shootables);
-        shootables2.attachChild(makeCube("the Sheriff", 20f, 1f, z));
-        rootNode.attachChild(shootables2);
-        shootables3.attachChild(makeCube("a tin can", 13f, -2f, z));
-        rootNode.attachChild(shootables3);
-        shootables4.attachChild(makeCube("the Deputy", 25f, 0f, z));
-        rootNode.attachChild(shootables4);
-        shootables.detachChild(makeFloor());
-        shootables5.attachChild(makeCharacter());
-       // rootNode.attachChild(shootables5);
+        // rootNode.attachChild(shootables5);
         shootables2.detachChild(makeFloor());
         shootables3.detachChild(makeFloor());
         shootables4.detachChild(makeFloor());
-        
-        
-                
 
-        rootNode.attachChild(ninjas);
-                   
-    DirectionalLight sun = new DirectionalLight();
-    sun.setDirection((new Vector3f(-0.5f, -0.5f, -0.5f)).normalizeLocal());
-    sun.setColor(ColorRGBA.White);
-    rootNode.addLight(sun); 
-                
+        rootNode.attachChild(naves);
 
-    }
-
-    void deleta(String hit) {
-        System.out.println("deleta()");
-        if (hit == "Ninja-Oto-geom-1") {
-            System.out.println("deleta ninja");
-            
-        }
-        if (hit == "a Dragon") {
-            shootables.detachChild(makeCube("a Dragon", -2f, 0f, 1f));
-            rootNode.detachChild(shootables);
-        }
-        if (hit == "the Sheriff") {
-            shootables2.detachChild(makeCube("the Sheriff", 0f, 1f, -2f));
-            rootNode.detachChild(shootables2);
-        }
-        if (hit == "a tin can") {
-            shootables3.detachChild(makeCube("a tin can", 1f, -2f, 0f));
-            rootNode.detachChild(shootables3);
-        }
-        if (hit == "the Deputy") {
-            shootables4.detachChild(makeCube("the Deputy", 1f, 0f, -4f));
-            rootNode.detachChild(shootables4);
-
-        }
-        //shootables.detachChild(makeFloor());
-        //shootables.detachChild(makeCharacter());
+        DirectionalLight sun = new DirectionalLight();
+        sun.setDirection((new Vector3f(-0.5f, -0.5f, -0.5f)).normalizeLocal());
+        sun.setColor(ColorRGBA.White);
+        rootNode.addLight(sun);
 
     }
 
@@ -128,7 +91,7 @@ public class HelloPicking extends SimpleApplication {
         inputManager.addMapping("Shoot",
                 new KeyTrigger(KeyInput.KEY_SPACE), // trigger 1: spacebar
                 new MouseButtonTrigger(MouseInput.BUTTON_LEFT)); // trigger 2: left-button click
-         inputManager.addMapping("Pause", new KeyTrigger(KeyInput.KEY_P));
+        inputManager.addMapping("Pause", new KeyTrigger(KeyInput.KEY_P));
         inputManager.addMapping("CriaNinja", new KeyTrigger(KeyInput.KEY_G));
         inputManager.addListener(actionListener, new String[]{"Pause", "CriaNinja", "Shoot"});
     }
@@ -144,22 +107,22 @@ public class HelloPicking extends SimpleApplication {
 
             if (isRunning) {
                 if (name.equals("CriaNinja") && keyPressed) {
-                   
-                    Spatial ninja = createNinja(Integer.toString(cont));
-                    ninjas.attachChild(ninja);
+
+                    Spatial nave = createNave(Integer.toString(cont));
+                    naves.attachChild(nave);
                     cont++;
                 }
                 if (name.equals("RemoveNinjas") && keyPressed) {
-                    for (Spatial s : ninjas.getChildren()) {
+                    for (Spatial s : naves.getChildren()) {
                         rootNode.detachChild(s);
                     }
-                    ninjas.detachAllChildren();
+                    naves.detachAllChildren();
                 }
                 if (name.equals("RemoveOlder") && keyPressed) {
                     int menor;
                     ArrayList<Integer> listaNum = new ArrayList<Integer>();
 
-                    for (Spatial s : ninjas.getChildren()) {
+                    for (Spatial s : naves.getChildren()) {
                         listaNum.add(Integer.parseInt(s.getName()));
                     }
 
@@ -170,14 +133,14 @@ public class HelloPicking extends SimpleApplication {
                         }
                     }
 
-                    ninjas.detachChildNamed(Integer.toString(menor));
+                    naves.detachChildNamed(Integer.toString(menor));
                     rootNode.detachChildNamed(Integer.toString(menor));
                 }
                 if (name.equals("DoubleSizeNewer") && keyPressed) {
                     int maior = 0;
                     ArrayList<Integer> listaNum = new ArrayList<Integer>();
 
-                    for (Spatial s : ninjas.getChildren()) {
+                    for (Spatial s : naves.getChildren()) {
                         listaNum.add(Integer.parseInt(s.getName()));
                     }
 
@@ -197,21 +160,17 @@ public class HelloPicking extends SimpleApplication {
                 // 2. Aponte o raio da localização do came para a direção da came.
                 Ray ray = new Ray(cam.getLocation(), cam.getDirection());
                 // 3. Aponte o raio do bloqueio do came para a direção da câmera.
-                shootables.collideWith(ray, results);
-                shootables2.collideWith(ray, results);
-                shootables3.collideWith(ray, results);
-                shootables4.collideWith(ray, results);
-                ninjas.collideWith(ray, results);
+
+                naves.collideWith(ray, results);
                 // 4. Imprimir os resultados
                 System.out.println("----- Collisions? " + results.size() + "-----");
                 for (int i = 0; i < results.size(); i++) {
                     // Para cada acerto, sabemos a distância, o ponto de impacto, o nome da geometria.
                     float dist = results.getCollision(i).getDistance();
                     Vector3f pt = results.getCollision(i).getContactPoint();
-                    String hit = results.getCollision(i).getGeometry().getName();
+                    hit = results.getCollision(i).getGeometry().getName();
                     System.out.println("---------------------------------------------------------" + i);
                     System.out.println("  ACERTOU " + hit + " at " + pt + ", " + dist + " wu away.");
-                    deleta(hit);
 
                 }
                 // 5. Use os resultados (marcamos o objeto hit)
@@ -230,53 +189,141 @@ public class HelloPicking extends SimpleApplication {
             }
         }
     };
-@Override
+
+    @Override
     public void simpleUpdate(float tpf) {
-       //TODO: add update code
+        //TODO: add update code
         if (!isRunning) {
-            guiNode.detachAllChildren();
-            guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
-            BitmapText helloText = new BitmapText(guiFont, false);
-            helloText.setSize(guiFont.getCharSet().getRenderedSize());
-            helloText.setText("PAUSE");
-            helloText.setLocalTranslation(300, helloText.getLineHeight(), 0);
-            guiNode.attachChild(helloText);
+            if (cont2 == 0) {
+                guiNode.detachAllChildren();
+                guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
+                BitmapText helloText = new BitmapText(guiFont, false);
+                helloText.setSize(guiFont.getCharSet().getRenderedSize());
+                helloText.setText("PAUSE");
+                helloText.setLocalTranslation(550, 500, 0);
+                guiNode.attachChild(helloText);
+            } else if (cont2 == 1) {
+                BitmapText TextGameOver = new BitmapText(guiFont, false);
+                TextGameOver.setSize(guiFont.getCharSet().getRenderedSize());
+                TextGameOver.setText("GAME OVER ");
+                TextGameOver.setLocalTranslation(550, 500, 0);
+                guiNode.attachChild(TextGameOver);
+                BitmapText TextRecorde = new BitmapText(guiFont, false);
+                TextRecorde.setSize(guiFont.getCharSet().getRenderedSize());
+                TextRecorde.setText("Recorde: " + recorde);
+                TextRecorde.setLocalTranslation(550, 400, 0);
+                guiNode.attachChild(TextRecorde);
+            }
         } else {
+            guiNode.detachAllChildren();
             initCrossHairs();
         }
 
         if (isRunning) {
-            for (Spatial s : ninjas.getChildren()) {
-                s.move(tpf, 0, 0);
-               
+            BitmapText TextVida = new BitmapText(guiFont, false);
+            TextVida.setSize(guiFont.getCharSet().getRenderedSize());
+            TextVida.setText("Vida: " + vida);
+            TextVida.setLocalTranslation(500, 800, 0);
+            guiNode.attachChild(TextVida);
+            BitmapText TextPontos = new BitmapText(guiFont, false);
+            TextPontos.setSize(guiFont.getCharSet().getRenderedSize());
+            TextPontos.setText("Pontos: " + pontos);
+            TextPontos.setLocalTranslation(600, 800, 0);
+            guiNode.attachChild(TextPontos);
+            BitmapText TextFase = new BitmapText(guiFont, false);
+            TextFase.setSize(guiFont.getCharSet().getRenderedSize());
+            TextFase.setText("Fase: " + fase);
+            TextFase.setLocalTranslation(550, 850, 0);
+            guiNode.attachChild(TextFase);
+            contN++;
+            Random rnd = new Random();
+            float x2 = (float) rnd.nextDouble();
+            int y2 = rnd.nextInt(12);
+            int z2 = rnd.nextInt(150);
+            if (z2 >= 50) {
+                z2 = z2 - 30;
             }
+            z2 = z2 * -1;
+            x2 = x2 * -1;
+
+            if (contN < 1000) {
+
+                if (contNaves < numNaves) {
+                    contNaves++;
+                    nave = createNave(Integer.toString(cont));
+                    if (x * (25 * contNaves * -1) < 49.83607) {
+                        nave.move(-50 + x * (25 * contNaves * -1), y2 + 3, z2 - 90);
+                    } else if ((100 - x * (25 * contNaves * -1)) <= -36.90996) {
+                        nave.move(-155 - x * (25 * contNaves * 1), y2 - 10, z2 - 80);
+                    } else if ((x * (25 * contNaves * -1)) > 55.68604) {
+                        nave.move(-55 - x * (25 * contNaves * 1), y2 + 10, z2 - 70);
+                    } else {
+                        nave.move(100 - x * (25 * contNaves * -1), y2, z2 - 50);
+                    }
+                    naves.attachChild(nave);
+                    cont++;
+                }
+            } else {
+                contN = 0;
+            }
+            for (Spatial s : naves.getChildren()) {
+                s.move(0, 0, tpf * 15);
+                if (s.getName() == hit) {
+                    naves.detachChild(s);
+                    rootNode.detachChild(s);
+                    contMortes++;
+                    if (contMortes == contNaves && contNaves == numNaves) {
+                        contNaves = 0;
+                        contMortes = 0;
+                        fase += 1;
+                        numNaves += 3;
+                    }
+                    pontos += 100;
+                    if(pontos > recorde){
+                        recorde = pontos;
+                    }
+                } else if (s.getLocalTranslation().z > cam.getLocation().z) {
+                    naves.detachChild(s);
+                    rootNode.detachChild(s);
+                    contMortes++;
+                    if (contMortes == contNaves && contNaves == numNaves) {
+                        contNaves = 0;
+                        contMortes = 0;
+                        fase += 1;
+                        numNaves += 3;
+                    }
+                    vida -= 10;
+                    if (vida < 1) {
+                        naves.detachAllChildren();
+                        fase = 1;
+                        contNaves = 0;
+                        pontos = 0;
+                        vida = 100;
+                        numNaves = 15;
+                        contMortes = 0;
+                        cont2 = 1;
+                        isRunning = !isRunning;
+                    }
+                }
+            }
+
         }
+
     }
-    /**
-     * Um objeto de cubo para a prática de destino
-     */
-    protected Geometry makeCube(String name, float x, float y, float z) {
-        //criar aqui os inimigos
-        Box box = new Box(1, 1, 1);
-        cube = new Geometry(name, box);
-        
-        Material mat1 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat1.setColor("Color", ColorRGBA.randomColor());
-        cube.setMaterial(mat1);
-        return cube;
-    }
- public Spatial createNinja(String name) {
+
+    public Spatial createNave(String name) {
         /**
          * Load a model. Uses model and texture from jme3-test-data library!
          */
-        Spatial ninja = assetManager.loadModel("Models/nave/nave.j3o");
-        ninja.setName(name);
-        ninja.scale(0.475f);
-        ninja.setLocalTranslation(-5.5f, -0.5f, 0);
-        ninja.rotate(0, -FastMath.PI / 2, 0);
-        
-        return ninja;
+        Spatial nave = assetManager.loadModel("Models/nave/nave.j3o");
+        nave.setName(name);
+        nave.scale(0.475f);
+        nave.setLocalTranslation(x, y, z);
+        nave.rotate(0, 0, 0);
+
+        return nave;
     }
+
     /**
      * Um piso para mostrar que o "tiro" pode passar por vários objetos.
      */
@@ -316,16 +363,4 @@ public class HelloPicking extends SimpleApplication {
         guiNode.attachChild(ch);
     }
 
-    protected Spatial makeCharacter() {
-        // load a character from jme3test-test-data
-        Spatial golem = assetManager.loadModel("Models/Oto/Oto.mesh.xml");
-        golem.scale(0.5f);
-        golem.setLocalTranslation(-1.0f, -1.5f, -0.6f);
-
-        //Devemos adicionar uma luz para tornar o modelo visível
-        DirectionalLight sun = new DirectionalLight();
-        sun.setDirection(new Vector3f(-0.1f, -0.7f, -1.0f));
-        golem.addLight(sun);
-        return golem;
-    }
 }
